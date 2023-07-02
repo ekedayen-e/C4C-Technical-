@@ -7,12 +7,31 @@ import {Container, Text} from '@chakra-ui/react';
 import { Shortened } from './types';
 
 export function App() {
+  const [error, setError] = useState<string>('')
   const [urls, setUrls] = useState<Array<Shortened>>([]);
   const [inputUrl, setInputUrl] = useState<string>('');
   const onSubmit = useCallback(
     async (event: FormEvent) => {
       event.preventDefault();
 
+      if(!inputUrl) {
+        setError('Required')
+        return;
+      }
+
+      if(!(/^https:\/\/.*\.com/.test(inputUrl))) {
+        setError("Invalid format: Please use 'https://website.com' format")
+        return;
+      }
+
+      if(urls.map((url) => {
+        return url.original
+      }).includes(inputUrl)) {
+        setError('Duplicate URL entered')
+        return;
+      }
+
+      setError('');
       const response = await axios.post(`http://localhost:3333/api/shorten`, {
         original: inputUrl,
       });
@@ -40,7 +59,7 @@ export function App() {
   return (
     <Container maxWidth="4xl" marginBlock={10} textAlign="center">
       <Text fontSize="4xl">My URL Shortener</Text>
-      <ShortenUrlForm onSubmit={onSubmit} inputUrl={inputUrl} setInputUrl={setInputUrl}/>
+      <ShortenUrlForm onSubmit={onSubmit} error={error} inputUrl={inputUrl} setInputUrl={setInputUrl}/>
       <UrlList urls={urls} />
     </Container>
   );

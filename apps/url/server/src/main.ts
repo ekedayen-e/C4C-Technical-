@@ -57,12 +57,14 @@ async function lookupUrl(shortenedId: number) {
   return result.original;
 }
 
-async function deleteUrl(url:string):Promise<void> {
+async function deleteUrl(shortenedId:string):Promise<string> {
   const db = await getDB();
 
-  const result = await db.run(`DELETE FROM url WHERE original = (?)`,
-  url
+  await db.run(`DELETE FROM url WHERE id = (?)`,
+  shortenedId
   );
+
+  return `Deleted Id: ${shortenedId}`
 }
 
 async function getAllUrl():Promise<object> {
@@ -103,14 +105,10 @@ app.get('/api/url', async (req, res) => {
   res.send(list)
 })
 
-app.delete('/api/delete', async (req, res) => {
-  try {
-  const original = req.body.original;
-  await deleteUrl(original)
+app.delete('/api/delete/:id', async (req, res) => {
+  const id = String(req.params.id);
+  const deleted = await deleteUrl(id)
   res.send("Deleted Successfully");
-  } catch {
-    res.send("Something went wrong")
-  }
 })
 
 app.get('/s/:id', async (req, res) => {

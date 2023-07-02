@@ -1,19 +1,17 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Button, Link, ListItem, UnorderedList } from '@chakra-ui/react';
 import {Shortened} from '../app/types'
-import axios from 'axios';
+import axios from 'axios'
 
 interface Props {
     urls: Shortened[];
 }
 
 const UrlList: React.FC<Props> = ({urls}) => {
-  const [selected, setSelected] = useState('')
 
-  const removeLink = async(original:string) => {
-    setSelected(original)
-    await axios.delete(`http://localhost:3333/api/delete`, {original: selected})
-    setSelected('');
+  const removeLink = async(short: string) => {
+    const id = short.substring(short.lastIndexOf('/') + 1)
+    await axios.delete(`http://localhost:3333/api/delete/${id}`)
   }
 
   return (
@@ -24,7 +22,7 @@ const UrlList: React.FC<Props> = ({urls}) => {
           {u.short}
         </Link>{' '}
         - {u.original}
-        <Button onClick={event => removeLink(u.original)} marginLeft={2} id="delete-btn" colorScheme="red" size="xs">Delete</Button>
+        <Button onClick={(event) => {event.preventDefault();removeLink(u.short)}} marginLeft={2} id="delete-btn" colorScheme="red" size="xs">Delete</Button>
       </ListItem>
     ))}
   </UnorderedList>

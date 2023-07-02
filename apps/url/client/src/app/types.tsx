@@ -3,4 +3,7 @@ type Shortened = {
     short: string;
 }
 
-export {Shortened}
+type Errors = {
+    url: string;
+}
+export {Shortened, Errors}
