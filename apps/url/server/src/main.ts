@@ -11,7 +11,7 @@ import { open } from 'sqlite';
  *
  * { 123 -> 'http://example.com/...' }
  */
-const urlmap: Record<number, string> = {};
+//const urlmap: Record<number, string> = {};
 
 let _db;
 
@@ -57,6 +57,30 @@ async function lookupUrl(shortenedId: number) {
   return result.original;
 }
 
+async function deleteUrl(url:string):Promise<void> {
+  const db = await getDB();
+
+  const result = await db.run(`DELETE FROM url WHERE original = (?)`,
+  url
+  );
+}
+
+async function getAllUrl():Promise<object> {
+  const db = await getDB();
+
+  const result = await db.all(
+    'SELECT id, original FROM url'
+  );
+
+  const formated = result.map((entry) => {
+    return {
+      short: `http://localhost:3333/s/${entry.id}`,
+      original: entry.original
+    }
+  })
+  return formated;
+}
+
 // App
 
 const app = express();
@@ -73,9 +97,26 @@ app.post('/api/shorten', async (req, res) => {
   });
 });
 
+app.get('/api/url', async (req, res) => {
+  const list = await getAllUrl();
+  //console.log(list)
+  res.send(list)
+})
+
+app.delete('/api/delete', async (req, res) => {
+  try {
+  const original = req.body.original;
+  await deleteUrl(original)
+  res.send("Deleted Successfully");
+  } catch {
+    res.send("Something went wrong")
+  }
+})
+
 app.get('/s/:id', async (req, res) => {
   const id = Number(req.params.id);
   const original = await lookupUrl(id);
+  console.log('Link: ' + original)
   res.redirect(original);
 });
 
